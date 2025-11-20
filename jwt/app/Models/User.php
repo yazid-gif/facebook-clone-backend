@@ -88,4 +88,14 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->hasMany(Post::class);
     }
+
+    /**
+     * Un utilisateur peut avoir plusieurs commentaires (One-to-Many)
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function commentaires()
+    {
+        return $this->hasMany(Comment::class);
+    }
 }

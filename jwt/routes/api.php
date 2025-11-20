@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CommentController;
 use App\Http\Controllers\Api\PostController;
 use Illuminate\Support\Facades\Route;
 
@@ -35,6 +36,23 @@ Route::middleware(['auth:api', 'throttle:posts'])->group(function () {
     Route::put('posts/{post}', [PostController::class, 'update']);
     Route::patch('posts/{post}', [PostController::class, 'update']);
     Route::delete('posts/{post}', [PostController::class, 'destroy']);
+});
+
+// ==========================================
+// Routes Commentaires (nested resources)
+// ==========================================
+// Routes publiques (sans authentification)
+Route::middleware('throttle:posts')->group(function () {
+    Route::get('posts/{post}/commentaires', [CommentController::class, 'index']);
+    Route::get('posts/{post}/commentaires/{comment}', [CommentController::class, 'show']);
+});
+
+// Routes protégées (authentification requise)
+Route::middleware(['auth:api', 'throttle:posts'])->group(function () {
+    Route::post('posts/{post}/commentaires', [CommentController::class, 'store']);
+    Route::put('posts/{post}/commentaires/{comment}', [CommentController::class, 'update']);
+    Route::patch('posts/{post}/commentaires/{comment}', [CommentController::class, 'update']);
+    Route::delete('posts/{post}/commentaires/{comment}', [CommentController::class, 'destroy']);
 });
 
 // ==========================================

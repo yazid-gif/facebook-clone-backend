@@ -45,6 +45,16 @@ class Post extends Model
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * Un post peut avoir plusieurs commentaires (One-to-Many)
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function commentaires()
+    {
+        return $this->hasMany(Comment::class);
+    }
+
     // ==========================================
     // SCOPES (Requêtes réutilisables)
     // ==========================================
