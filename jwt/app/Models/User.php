@@ -26,6 +26,7 @@ class User extends Authenticatable implements JWTSubject
         'name', // Nom de l'utilisateur
         'email', // Email (unique)
         'password', // Mot de passe (sera hashé)
+        'role', // Rôle de l'utilisateur (user, editor, admin)
     ];
 
     /**
@@ -69,10 +70,42 @@ class User extends Authenticatable implements JWTSubject
     public function getJWTCustomClaims()
     {
         return [
-            // Vous pouvez ajouter des données personnalisées ici
-            // 'role' => $this->role,
-            // 'permissions' => $this->permissions,
+            'role' => $this->role, // Inclure le rôle dans le JWT
         ];
+    }
+
+    // ==========================================
+    // MÉTHODES DE VÉRIFICATION DE RÔLE
+    // ==========================================
+
+    /**
+     * Vérifier si l'utilisateur est admin
+     *
+     * @return bool
+     */
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    /**
+     * Vérifier si l'utilisateur est éditeur
+     *
+     * @return bool
+     */
+    public function isEditor(): bool
+    {
+        return $this->role === 'editor';
+    }
+
+    /**
+     * Vérifier si l'utilisateur est admin ou éditeur
+     *
+     * @return bool
+     */
+    public function isEditorOrAdmin(): bool
+    {
+        return in_array($this->role, ['editor', 'admin']);
     }
 
     // ==========================================
@@ -97,5 +130,16 @@ class User extends Authenticatable implements JWTSubject
     public function commentaires()
     {
         return $this->hasMany(Comment::class);
+    }
+
+    /**
+     * Un utilisateur peut liker plusieurs posts (Many-to-Many)
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function likedPosts()
+    {
+        return $this->belongsToMany(Post::class, 'post_user_likes')
+            ->withTimestamps();
     }
 }

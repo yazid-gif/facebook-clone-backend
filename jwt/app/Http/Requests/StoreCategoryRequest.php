@@ -7,13 +7,13 @@ use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
 /**
- * Request de validation pour la création d'un post
+ * Request de validation pour la création d'une catégorie
  */
-class StorePostRequest extends FormRequest
+class StoreCategoryRequest extends FormRequest
 {
     /**
      * Déterminer si l'utilisateur est autorisé
-     * Nous gérons l'autorisation dans le contrôleur/middleware
+     * L'autorisation est gérée dans le contrôleur/middleware
      */
     public function authorize(): bool
     {
@@ -26,12 +26,9 @@ class StorePostRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'titre' => 'required|string|max:255',
-            'contenu' => 'required|string|min:10',
-            'statut' => 'sometimes|in:brouillon,publie',
-            'category_id' => 'sometimes|nullable|exists:categories,id',
-            'tags' => 'sometimes|array',
-            'tags.*' => 'exists:tags,id',
+            'nom' => 'required|string|max:255|unique:categories,nom',
+            'slug' => 'sometimes|string|max:255|unique:categories,slug',
+            'description' => 'nullable|string',
         ];
     }
 
@@ -41,17 +38,14 @@ class StorePostRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'titre.required' => 'Le titre de l\'article est obligatoire',
-            'titre.max' => 'Le titre ne peut pas dépasser 255 caractères',
-            'contenu.required' => 'Le contenu de l\'article est obligatoire',
-            'contenu.min' => 'Le contenu doit contenir au moins 10 caractères',
-            'statut.in' => 'Le statut doit être "brouillon" ou "publie"',
+            'nom.required' => 'Le nom de la catégorie est obligatoire',
+            'nom.unique' => 'Cette catégorie existe déjà',
+            'slug.unique' => 'Ce slug est déjà utilisé',
         ];
     }
 
     /**
      * Personnaliser la réponse en cas d'échec de validation
-     * Retourner un JSON au lieu de rediriger
      */
     protected function failedValidation(Validator $validator)
     {

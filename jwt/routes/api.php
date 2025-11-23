@@ -1,8 +1,12 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\CommentController;
 use App\Http\Controllers\Api\PostController;
+use App\Http\Controllers\Api\SearchController;
+use App\Http\Controllers\Api\TagController;
+use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
 
 // ==========================================
@@ -27,7 +31,9 @@ Route::middleware('auth:api')->prefix('auth')->group(function () {
 // Routes publiques (sans authentification)
 Route::middleware('throttle:posts')->group(function () {
     Route::get('posts', [PostController::class, 'index']);
+    Route::get('posts/search', [SearchController::class, 'search']);
     Route::get('posts/{post}', [PostController::class, 'show']);
+    Route::get('posts/{post}/likes', [PostController::class, 'showLikes']);
 });
 
 // Routes protégées (authentification requise)
@@ -36,6 +42,18 @@ Route::middleware(['auth:api', 'throttle:posts'])->group(function () {
     Route::put('posts/{post}', [PostController::class, 'update']);
     Route::patch('posts/{post}', [PostController::class, 'update']);
     Route::delete('posts/{post}', [PostController::class, 'destroy']);
+    
+    // Routes pour attacher/détacher des tags
+    Route::post('posts/{post}/tags', [PostController::class, 'attachTags']);
+    Route::delete('posts/{post}/tags/{tag}', [PostController::class, 'detachTag']);
+    
+    // Routes pour liker/unliker
+    Route::post('posts/{post}/like', [PostController::class, 'like']);
+    Route::delete('posts/{post}/like', [PostController::class, 'unlike']);
+    
+    // Routes pour upload/supprimer l'image de couverture
+    Route::post('posts/{post}/image', [PostController::class, 'uploadImage']);
+    Route::delete('posts/{post}/image', [PostController::class, 'deleteImage']);
 });
 
 // ==========================================
@@ -53,6 +71,54 @@ Route::middleware(['auth:api', 'throttle:posts'])->group(function () {
     Route::put('posts/{post}/commentaires/{comment}', [CommentController::class, 'update']);
     Route::patch('posts/{post}/commentaires/{comment}', [CommentController::class, 'update']);
     Route::delete('posts/{post}/commentaires/{comment}', [CommentController::class, 'destroy']);
+});
+
+// ==========================================
+// Routes Catégories
+// ==========================================
+// Routes publiques (sans authentification)
+Route::middleware('throttle:posts')->group(function () {
+    Route::get('categories', [CategoryController::class, 'index']);
+    Route::get('categories/{category}', [CategoryController::class, 'show']);
+});
+
+// Routes Editor et Admin (gestion des catégories)
+Route::middleware(['auth:api', 'role:editor,admin', 'throttle:posts'])->group(function () {
+    Route::post('categories', [CategoryController::class, 'store']);
+    Route::put('categories/{category}', [CategoryController::class, 'update']);
+    Route::patch('categories/{category}', [CategoryController::class, 'update']);
+    Route::delete('categories/{category}', [CategoryController::class, 'destroy']);
+});
+
+// ==========================================
+// Routes Tags
+// ==========================================
+// Routes publiques (sans authentification)
+Route::middleware('throttle:posts')->group(function () {
+    Route::get('tags', [TagController::class, 'index']);
+    Route::get('tags/{tag}', [TagController::class, 'show']);
+});
+
+// Routes Editor et Admin (gestion des tags)
+Route::middleware(['auth:api', 'role:editor,admin', 'throttle:posts'])->group(function () {
+    Route::post('tags', [TagController::class, 'store']);
+    Route::put('tags/{tag}', [TagController::class, 'update']);
+    Route::patch('tags/{tag}', [TagController::class, 'update']);
+    Route::delete('tags/{tag}', [TagController::class, 'destroy']);
+});
+
+// ==========================================
+// Routes Admin uniquement
+// ==========================================
+Route::middleware(['auth:api', 'role:admin', 'throttle:posts'])->group(function () {
+    // Suppression définitive d'un article
+    Route::delete('posts/{post}/force', [PostController::class, 'forceDelete']);
+    
+    // Gestion des utilisateurs
+    Route::get('users', [UserController::class, 'index']);
+    Route::get('users/{user}', [UserController::class, 'show']);
+    Route::put('users/{user}', [UserController::class, 'update']);
+    Route::patch('users/{user}', [UserController::class, 'update']);
 });
 
 // ==========================================

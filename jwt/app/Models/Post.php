@@ -21,7 +21,9 @@ class Post extends Model
         'contenu',
         'statut',
         'publie_le',
-        'user_id'
+        'user_id',
+        'category_id',
+        'image_path'
     ];
 
     /**
@@ -53,6 +55,48 @@ class Post extends Model
     public function commentaires()
     {
         return $this->hasMany(Comment::class);
+    }
+
+    /**
+     * Un post appartient à une catégorie (Many-to-One)
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
+
+    /**
+     * Un post peut avoir plusieurs tags (Many-to-Many)
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function tags()
+    {
+        return $this->belongsToMany(Tag::class)->withTimestamps();
+    }
+
+    /**
+     * Un post peut être liké par plusieurs utilisateurs (Many-to-Many)
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function likes()
+    {
+        return $this->belongsToMany(User::class, 'post_user_likes')
+            ->withTimestamps();
+    }
+
+    /**
+     * Vérifier si un utilisateur a liké ce post
+     *
+     * @param User $user
+     * @return bool
+     */
+    public function isLikedBy(User $user)
+    {
+        return $this->likes()->where('user_id', $user->id)->exists();
     }
 
     // ==========================================

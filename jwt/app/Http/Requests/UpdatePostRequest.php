@@ -12,12 +12,22 @@ use Illuminate\Http\Exceptions\HttpResponseException;
 class UpdatePostRequest extends FormRequest
 {
     /**
-     * Vérifier que l'utilisateur est le propriétaire du post
+     * Vérifier les permissions :
+     * - User : peut modifier uniquement ses propres articles
+     * - Editor/Admin : peuvent modifier tous les articles
      */
     public function authorize(): bool
     {
-        // $this->route('post') = le post du route model binding
-        return $this->user()->id === $this->route('post')->user_id;
+        $user = $this->user();
+        $post = $this->route('post');
+        
+        // Editor et Admin peuvent modifier tous les articles
+        if (in_array($user->role, ['editor', 'admin'])) {
+            return true;
+        }
+        
+        // User peut modifier uniquement ses propres articles
+        return $user->id === $post->user_id;
     }
 
     /**
@@ -30,6 +40,9 @@ class UpdatePostRequest extends FormRequest
             'titre' => 'sometimes|string|max:255',
             'contenu' => 'sometimes|string|min:10',
             'statut' => 'sometimes|in:brouillon,publie',
+            'category_id' => 'sometimes|nullable|exists:categories,id',
+            'tags' => 'sometimes|array',
+            'tags.*' => 'exists:tags,id',
         ];
     }
 
